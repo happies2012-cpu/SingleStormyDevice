@@ -2,6 +2,7 @@ compile = "javac -classpath .:target/dependency/* -d . $(find . -type f -name '*
 run = "java -classpath .:target/dependency/* Main"
 entrypoint = "src/main/java/Main.java"
 hidden = ["**/*.class"]
+modules = ["nodejs-20"]
 
 [packager]
 language = "java"
