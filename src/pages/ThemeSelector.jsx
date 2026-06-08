@@ -1,172 +1,201 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { motion } from 'framer-motion';
+import { ArrowLeft, Layers, CheckCircle2, ChevronRight } from 'lucide-react';
 import { useApp } from '../App.jsx';
+import { useTheme } from '../contexts/ThemeContext.jsx';
 import { THEMES } from '../themes/themes.js';
+import { AnimatedBackground } from '../components/AnimatedBackground.jsx';
+import { ThemeToggle } from '../components/ThemeToggle.jsx';
+import { GlassButton } from '../components/GlassButton.jsx';
 
 export default function ThemeSelector() {
   const navigate = useNavigate();
   const { industryData, setSelectedTheme } = useApp();
+  const { theme } = useTheme();
+  const isDark = theme === 'dark';
   const [hovered, setHovered] = useState(null);
-  const [darkMode, setDarkMode] = useState(() => localStorage.getItem('gen-dark') !== 'false');
+  const [selected, setSelected] = useState(null);
 
-  useEffect(() => { localStorage.setItem('gen-dark', darkMode); }, [darkMode]);
-
-  const pickTheme = (theme) => {
-    setSelectedTheme(theme);
-    navigate(`/preview/${theme.id}/home`);
+  const pickTheme = (t) => {
+    setSelected(t.id);
+    setTimeout(() => {
+      setSelectedTheme(t);
+      navigate(`/preview/${t.id}/home`);
+    }, 350);
   };
 
-  const bg = darkMode ? '#0a0a1a' : '#fafbff';
-  const text = darkMode ? '#f8fafc' : '#0f172a';
-  const textMuted = darkMode ? '#94a3b8' : '#64748b';
-  const cardBg = darkMode ? 'rgba(30,41,59,0.5)' : '#ffffff';
-  const border = darkMode ? 'rgba(148,163,184,0.15)' : '#e2e8f0';
-
   return (
-    <div style={{
-      minHeight: '100vh',
-      background: darkMode 
-        ? 'radial-gradient(ellipse at top, #1e1b4b 0%, #0a0a1a 50%, #000 100%)'
-        : 'radial-gradient(ellipse at top, #eff6ff 0%, #fafbff 60%, #fff 100%)',
-      color: text, fontFamily: "'Inter', sans-serif",
-    }}>
-      {/* Header */}
-      <header style={{
-        padding: '24px 5%',
-        display: 'flex', justifyContent: 'space-between', alignItems: 'center',
-        borderBottom: `1px solid ${border}`,
-      }}>
-        <button onClick={() => navigate('/')} style={{
-          background: cardBg, border: `1px solid ${border}`,
-          color: text, padding: '10px 18px', borderRadius: 100,
-          cursor: 'pointer', fontSize: 14, fontWeight: 500,
-        }}>← Back</button>
+    <div className={`min-h-screen relative ${isDark ? 'dark bg-[#020208]' : 'bg-[#f4f6ff]'}`}>
+      <AnimatedBackground intensity={0.7} />
+      <div className="fixed inset-0 pointer-events-none z-[1] grid-lines opacity-30" aria-hidden="true" />
 
-        <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-          <div style={{
-            fontSize: 36,
-            filter: 'drop-shadow(0 4px 12px rgba(0,0,0,0.2))',
-          }}>{industryData.icon}</div>
-          <div>
-            <div style={{ fontSize: 11, color: textMuted, letterSpacing: 1, textTransform: 'uppercase' }}>Industry</div>
-            <div style={{ fontWeight: 700, fontSize: 18 }}>{industryData.label}</div>
+      {/* ── NAVBAR ─────────────────────────────────── */}
+      <header className="relative z-50 glass-nav sticky top-0">
+        <div className="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between gap-4">
+          <GlassButton variant="secondary" size="sm" onClick={() => navigate('/')} icon={<ArrowLeft size={14} />}>
+            BACK
+          </GlassButton>
+
+          <div className="flex items-center gap-3">
+            <div className={`w-9 h-9 rounded-xl flex items-center justify-center text-xl`}
+              style={{ background: `${industryData.color}20` }}>
+              {industryData.icon}
+            </div>
+            <div>
+              <div className={`label-mono ${isDark ? 'text-white/40' : 'text-slate-400'}`}>ACTIVE SECTOR</div>
+              <div className={`font-bold text-sm ${isDark ? 'text-white' : 'text-slate-900'}`}>
+                {industryData.label.toUpperCase()} · {industryData.brandName}
+              </div>
+            </div>
           </div>
-        </div>
 
-        <button onClick={() => setDarkMode(!darkMode)} style={{
-          background: cardBg, border: `1px solid ${border}`,
-          color: text, padding: '10px 18px', borderRadius: 100,
-          cursor: 'pointer', fontSize: 14, fontWeight: 500,
-        }}>{darkMode ? '☀️' : '🌙'}</button>
+          <ThemeToggle />
+        </div>
       </header>
 
-      <main style={{ maxWidth: 1400, margin: '0 auto', padding: '60px 5% 80px' }}>
-        <div style={{ textAlign: 'center', marginBottom: 60 }}>
-          <h1 style={{
-            fontSize: 'clamp(36px, 5vw, 56px)', fontWeight: 800, marginBottom: 16,
-            letterSpacing: '-0.02em',
-          }}>
-            Choose Your{' '}
-            <span style={{
-              background: 'linear-gradient(135deg, #6366f1 0%, #ec4899 100%)',
-              WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent',
-            }}>Design Theme</span>
-          </h1>
-          <p style={{ fontSize: 17, color: textMuted, maxWidth: 600, margin: '0 auto' }}>
-            5 unique design models for <strong>{industryData.brandName}</strong>. Each theme includes 30 fully designed pages.
-          </p>
-        </div>
+      {/* ── CONTENT ────────────────────────────────── */}
+      <main className="relative z-10 max-w-7xl mx-auto px-6 py-16">
 
-        <div style={{
-          display: 'grid', gap: 28,
-          gridTemplateColumns: 'repeat(auto-fit, minmax(340px, 1fr))',
-        }}>
-          {THEMES.map((theme, i) => (
-            <button
-              key={theme.id}
-              onClick={() => pickTheme(theme)}
-              onMouseEnter={() => setHovered(theme.id)}
+        {/* Hero */}
+        <motion.div
+          initial={{ opacity: 0, y: 28 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.55, ease: [0.22,1,0.36,1] }}
+          className="text-center mb-14"
+        >
+          <div className={`inline-flex items-center gap-2 px-4 py-2 rounded-full border mb-6 label-mono ${
+            isDark ? 'bg-indigo-500/10 border-indigo-500/30 text-indigo-300' : 'bg-indigo-500/8 border-indigo-400/30 text-indigo-600'
+          }`}>
+            <Layers size={11} />
+            SELECT VISUAL PROTOCOL · 5 SYSTEMS AVAILABLE
+          </div>
+
+          <h1 className={`font-black tracking-tight leading-tight mb-4 ${isDark ? 'text-white' : 'text-slate-900'}`}
+            style={{ fontSize: 'clamp(36px, 5vw, 60px)' }}>
+            CHOOSE{' '}
+            <span className="text-gradient-primary">DESIGN PROTOCOL</span>
+          </h1>
+
+          <p className={`text-base max-w-xl mx-auto ${isDark ? 'text-white/40' : 'text-slate-500'}`}>
+            Each protocol includes <strong className={isDark ? 'text-white/70' : 'text-slate-700'}>30 fully-rendered interface modules</strong> optimized
+            for <strong className={isDark ? 'text-white/70' : 'text-slate-700'}>{industryData.brandName}</strong>.
+            Select to preview.
+          </p>
+        </motion.div>
+
+        {/* Theme grid */}
+        <div className="grid gap-6" style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(340px, 1fr))' }}>
+          {THEMES.map((t, i) => (
+            <motion.button
+              key={t.id}
+              onClick={() => pickTheme(t)}
+              onMouseEnter={() => setHovered(t.id)}
               onMouseLeave={() => setHovered(null)}
+              initial={{ opacity: 0, y: 32 }}
+              animate={{ opacity: selected === t.id ? 0.6 : 1, y: 0, scale: selected === t.id ? 0.97 : 1 }}
+              transition={{ delay: i * 0.07, duration: 0.5, ease: [0.22,1,0.36,1] }}
+              whileHover={{ scale: 1.015, y: -4 }}
+              whileTap={{ scale: 0.98 }}
+              className="relative text-left overflow-hidden rounded-3xl border transition-all duration-300"
               style={{
-                background: cardBg, border: `1px solid ${hovered === theme.id ? theme.style.primary : border}`,
-                borderRadius: 24, padding: 0,
-                cursor: 'pointer', textAlign: 'left',
-                color: text, overflow: 'hidden',
-                transition: 'all 0.3s',
-                transform: hovered === theme.id ? 'translateY(-8px)' : 'translateY(0)',
-                boxShadow: hovered === theme.id 
-                  ? `0 24px 60px ${theme.style.primary}30`
-                  : (darkMode ? '0 4px 12px rgba(0,0,0,0.3)' : '0 4px 12px rgba(0,0,0,0.05)'),
+                background: isDark ? 'rgba(255,255,255,0.03)' : 'rgba(255,255,255,0.75)',
+                borderColor: hovered === t.id
+                  ? `${t.style.primary}60`
+                  : isDark ? 'rgba(255,255,255,0.07)' : 'rgba(0,0,0,0.07)',
+                boxShadow: hovered === t.id
+                  ? `0 20px 60px ${t.style.primary}25, 0 0 0 1px ${t.style.primary}30`
+                  : isDark ? '0 4px 20px rgba(0,0,0,0.3)' : '0 4px 20px rgba(0,0,0,0.05)',
               }}
             >
-              {/* Preview */}
-              <div style={{
-                height: 180,
-                background: theme.style.gradientHero || theme.style.gradient,
-                position: 'relative', overflow: 'hidden',
-              }}>
-                <div style={{
-                  position: 'absolute', top: 16, left: 16,
-                  padding: '6px 12px', borderRadius: 100,
-                  background: theme.badgeColor, color: '#fff',
-                  fontSize: 11, fontWeight: 700,
-                }}>{theme.badge}</div>
+              {/* Top inset highlight */}
+              <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-white/20 to-transparent" />
 
-                {/* Mock browser */}
-                <div style={{
-                  position: 'absolute', bottom: -10, left: 30, right: 30,
-                  height: 120, borderRadius: '12px 12px 0 0',
-                  background: theme.style.surface,
-                  border: `1px solid ${theme.style.border}`,
-                  boxShadow: '0 -8px 24px rgba(0,0,0,0.15)',
-                  padding: 14,
-                }}>
-                  <div style={{ display: 'flex', gap: 6, marginBottom: 10 }}>
-                    <div style={{ width: 8, height: 8, borderRadius: '50%', background: '#ef4444' }} />
-                    <div style={{ width: 8, height: 8, borderRadius: '50%', background: '#f59e0b' }} />
-                    <div style={{ width: 8, height: 8, borderRadius: '50%', background: '#10b981' }} />
-                  </div>
-                  <div style={{ height: 8, width: '60%', background: theme.style.primary, borderRadius: 4, marginBottom: 8, opacity: 0.8 }} />
-                  <div style={{ height: 6, width: '80%', background: theme.style.border, borderRadius: 3, marginBottom: 6 }} />
-                  <div style={{ height: 6, width: '50%', background: theme.style.border, borderRadius: 3 }} />
+              {/* Preview panel */}
+              <div
+                className="relative overflow-hidden"
+                style={{
+                  height: 200,
+                  background: t.style.gradientHero || t.style.gradient,
+                }}
+              >
+                {/* Badge */}
+                <div
+                  className="absolute top-3 left-3 px-3 py-1 rounded-full text-white label-mono text-[10px] font-bold"
+                  style={{ background: t.badgeColor || t.style.primary }}
+                >
+                  {t.badge}
                 </div>
-              </div>
 
-              {/* Content */}
-              <div style={{ padding: 24 }}>
-                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8 }}>
-                  <div style={{ fontWeight: 800, fontSize: 22 }}>{theme.name}</div>
-                  <div style={{ display: 'flex', gap: 4 }}>
-                    {theme.preview.map((c, j) => (
-                      <div key={j} style={{
-                        width: 18, height: 18, borderRadius: 6,
-                        background: c, border: `1px solid ${border}`,
-                      }} />
+                {/* Color swatches */}
+                <div className="absolute top-3 right-3 flex gap-1.5">
+                  {t.preview.slice(0, 4).map((c, j) => (
+                    <div key={j}
+                      className="w-4 h-4 rounded-full border border-white/30 shadow-lg"
+                      style={{ background: typeof c === 'string' && c.startsWith('rgba') ? 'rgba(255,255,255,0.3)' : c }}
+                    />
+                  ))}
+                </div>
+
+                {/* Mock browser chrome */}
+                <div className={`absolute bottom-0 left-6 right-6 rounded-t-xl overflow-hidden shadow-2xl`}
+                  style={{
+                    background: t.style.isGlass ? 'rgba(255,255,255,0.12)' : t.style.surface,
+                    border: `1px solid ${t.style.border}`,
+                    borderBottom: 'none',
+                  }}
+                >
+                  <div className="flex items-center gap-1.5 px-3 py-2 border-b" style={{ borderColor: t.style.border }}>
+                    {['#ef4444','#f59e0b','#10b981'].map(c => (
+                      <div key={c} className="w-2 h-2 rounded-full" style={{ background: c }} />
                     ))}
+                    <div className="ml-2 flex-1 h-3 rounded-full" style={{ background: t.style.border, maxWidth: 120 }} />
                   </div>
-                </div>
-                <div style={{ fontSize: 13, color: textMuted, fontWeight: 500, marginBottom: 12, textTransform: 'uppercase', letterSpacing: 1 }}>
-                  {theme.subtitle}
-                </div>
-                <p style={{ fontSize: 14, color: textMuted, lineHeight: 1.6, marginBottom: 20 }}>
-                  {theme.description}
-                </p>
-                <div style={{
-                  padding: '12px 0', borderTop: `1px solid ${border}`,
-                  display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-                }}>
-                  <div style={{ fontSize: 13, color: textMuted }}>
-                    📄 30 pages • 🎨 Fully styled
-                  </div>
-                  <div style={{
-                    color: theme.style.primary, fontWeight: 700, fontSize: 14,
-                    display: 'flex', alignItems: 'center', gap: 4,
-                  }}>
-                    Preview →
+                  <div className="p-3">
+                    <div className="h-2.5 rounded-full mb-2 w-3/4" style={{ background: t.style.primary, opacity: 0.7 }} />
+                    <div className="h-1.5 rounded-full mb-1.5 w-full" style={{ background: t.style.border }} />
+                    <div className="h-1.5 rounded-full w-2/3" style={{ background: t.style.border }} />
                   </div>
                 </div>
               </div>
-            </button>
+
+              {/* Info panel */}
+              <div className="p-6">
+                <div className="flex items-start justify-between mb-3">
+                  <div>
+                    <div className={`font-black text-xl tracking-tight ${isDark ? 'text-white' : 'text-slate-900'}`}>
+                      {t.name.toUpperCase()}
+                    </div>
+                    <div className="label-mono mt-0.5" style={{ color: t.style.primary }}>{t.subtitle.toUpperCase()}</div>
+                  </div>
+                  <div
+                    className="w-8 h-8 rounded-full border-2 flex items-center justify-center transition-all"
+                    style={{
+                      borderColor: hovered === t.id ? t.style.primary : isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)',
+                      background: hovered === t.id ? t.style.primary : 'transparent',
+                    }}
+                  >
+                    {hovered === t.id
+                      ? <CheckCircle2 size={16} className="text-white" />
+                      : <ChevronRight size={14} style={{ color: isDark ? 'rgba(255,255,255,0.3)' : 'rgba(0,0,0,0.3)' }} />
+                    }
+                  </div>
+                </div>
+
+                <p className={`text-sm leading-relaxed mb-4 ${isDark ? 'text-white/45' : 'text-slate-500'}`}>
+                  {t.description}
+                </p>
+
+                <div className={`flex items-center justify-between pt-4 border-t ${isDark ? 'border-white/[0.06]' : 'border-black/[0.06]'}`}>
+                  <div className={`label-mono ${isDark ? 'text-white/25' : 'text-slate-400'}`}>
+                    30 MODULES · LIGHT + DARK
+                  </div>
+                  <div className="label-mono" style={{ color: t.style.primary }}>
+                    DEPLOY →
+                  </div>
+                </div>
+              </div>
+            </motion.button>
           ))}
         </div>
       </main>

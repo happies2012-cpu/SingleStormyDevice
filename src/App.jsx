@@ -5,7 +5,6 @@ import ThemeSelector from './pages/ThemeSelector.jsx';
 import UIViewer from './pages/UIViewer.jsx';
 
 export const AppContext = createContext({});
-
 export const useApp = () => useContext(AppContext);
 
 export default function App() {
@@ -18,7 +17,10 @@ export default function App() {
         <Routes>
           <Route path="/" element={<GeneratorPage />} />
           <Route path="/themes" element={industryData ? <ThemeSelector /> : <Navigate to="/" />} />
-          <Route path="/preview/:themeId/:pageId?" element={industryData && selectedTheme ? <UIViewer /> : <Navigate to="/" />} />
+          <Route
+            path="/preview/:themeId/:pageId?"
+            element={industryData && selectedTheme ? <UIViewer /> : <Navigate to="/" />}
+          />
           <Route path="*" element={<Navigate to="/" />} />
         </Routes>
       </BrowserRouter>
